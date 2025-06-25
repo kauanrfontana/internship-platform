@@ -4,6 +4,7 @@ import { router } from './pages/routes'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from './components/theme/theme-provider'
+import { AuthProvider } from './middlwares/auth-provider'
 
 export function App() {
   return (
@@ -11,7 +12,10 @@ export function App() {
       <ThemeProvider storageKey="intership-platform-theme" defaultTheme='dark'>
         <Helmet titleTemplate='%s | internship.platform'/>
         <Toaster richColors/>
-        <RouterProvider router={router} />
+
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </ThemeProvider>
     </HelmetProvider>
   )

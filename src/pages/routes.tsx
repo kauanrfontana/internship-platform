@@ -7,6 +7,7 @@ import { NotFound } from "./404";
 import { Internships } from "./app/internships";
 import { Calendar } from "./app/calendar";
 import { FrequentlyAskedQuestions } from "./app/frequently-asked-questions";
+import { Home } from "./app/home";
 
 export const router = createBrowserRouter([
     {
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
         element: <AppLayout/>,
         errorElement: <NotFound/>,
         children: [
+            { path: '/', element: <Home /> },
             {path: '/estagios', element: <Internships/>},
             {path: '/calendar', element: <Calendar/>},
             {path: '/faq', element: <FrequentlyAskedQuestions/>},

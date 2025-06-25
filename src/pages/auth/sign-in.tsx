@@ -1,87 +1,103 @@
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
+import { useAuth } from '@/middlwares/auth-provider' // Ajuste se necessário
 
 const signInForm = z.object({
-    email: z.string().email(),
-    password: z.string()
+  email: z.string().email(),
+  password: z.string()
 })
 
 type SignInForm = z.infer<typeof signInForm>
 
 export function SignIn() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
-    const {
-        register,
-        handleSubmit,
-        formState: { isSubmitting }
-    } = useForm<SignInForm>()
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting }
+  } = useForm<SignInForm>()
 
-    async function handleSignIn(data: SignInForm) {
-        try {
-            console.log(data)
+  async function handleSignIn(data: SignInForm) {
+    try {
+      console.log(data)
 
-            await new Promise(resolve => setTimeout(resolve, 2000))
+      // Simula chamada API
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
-            toast.success('Enviado link de autenticação', {
-                action: {
-                    label: 'Reenviar',
-                    onClick: () => handleSignIn(data)
-                }
-            })
-        } catch {
-            toast.error('Credenciais inválidas')
-        }
+      login('student')
+
+      toast.success('Login realizado com sucesso!')
+      navigate('/')
+    } catch {
+      toast.error('Credenciais inválidas')
     }
+  }
 
-    return (
-        <>
-            <Helmet title='Login' />
+  function handleLoginAsStudent() {
+    login('student')
+    toast.success('Logado como Aluno')
+  }
 
-            <div className='p-8'>
+  function handleLoginAsTeacher() {
+    login('teacher')
+    toast.success('Logado como Orientador')
+  }
 
-                <Button asChild variant="ghost" className="absolute right-8 top-8">
-                    <Link to="/sign-up" >
-                        Novo usuário
-                    </Link>
-                </Button>
+  return (
+    <>
+      <Helmet title='Login' />
 
-                <div className='w-[350px] flex flex-col justify-center gap-6'>
-                    <div className='flex flex-col gap-2 text-center'>
-                        <h1 className='text-2xl font-semibold tracking-tight'>Acessar sua conta</h1>
+      <div className='p-8'>
 
-                        <p className='text-sm text-muted-foreground'>Acesse o seu ambiente de estágio!</p>
-                    </div>
+        <Button asChild variant="ghost" className="absolute right-8 top-8">
+          <Link to="/sign-up" >
+            Novo usuário
+          </Link>
+        </Button>
 
-                    <form onSubmit={handleSubmit(handleSignIn)} className='space-y-4'>
-                        <div className='space-y-2'>
-                            <Label htmlFor='email'>Seu e-mail</Label>
-                            <Input
-                                id='email'
-                                type='email'
-                                {...register('email')}
-                            />
+        <div className='w-[350px] flex flex-col justify-center gap-6'>
+          <div className='flex flex-col gap-2 text-center'>
+            <h1 className='text-2xl font-semibold tracking-tight'>Acessar sua conta</h1>
 
-                            <Label htmlFor='password'>Sua senha</Label>
-                            <Input
-                                id='password'
-                                type='password'
-                                {...register('password')}
-                            />
-                        </div>
+            <p className='text-sm text-muted-foreground'>Acesse o seu ambiente de estágio!</p>
+          </div>
 
-                        <Button disabled={isSubmitting} type='submit' className='w-full'>Acessar aplicação</Button>
-                    </form>
+          <form onSubmit={handleSubmit(handleSignIn)} className='space-y-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='email'>Seu e-mail</Label>
+              <Input
+                id='email'
+                type='email'
+                {...register('email')}
+              />
 
-                </div>
+              <Label htmlFor='password'>Sua senha</Label>
+              <Input
+                id='password'
+                type='password'
+                {...register('password')}
+              />
             </div>
 
-        </>
-    )
+            <div className="mt-6 flex flex-col gap-2">
+                <Button onClick={handleLoginAsStudent} variant="default">Entrar como Aluno</Button>
+            </div>
+
+        
+          </form>
+
+        </div>
+      </div>
+    </>
+  )
 }
