@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
-import { useAuth } from '@/middlwares/auth-provider' // Ajuste se necessário
+import { useAuth } from '@/middlwares/auth-provider' 
 
 const signInForm = z.object({
   email: z.string().email(),
@@ -90,7 +90,7 @@ export function SignIn() {
             </div>
 
             <div className="mt-6 flex flex-col gap-2">
-                <Button onClick={handleLoginAsStudent} variant="default">Entrar como Aluno</Button>
+                <Button disabled={isSubmitting} onClick={handleLoginAsStudent} variant="default">Entrar como Aluno</Button>
             </div>
 
         
