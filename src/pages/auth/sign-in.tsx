@@ -48,11 +48,6 @@ export function SignIn() {
     toast.success('Logado como Aluno')
   }
 
-  function handleLoginAsTeacher() {
-    login('teacher')
-    toast.success('Logado como Orientador')
-  }
-
   return (
     <>
       <Helmet title='Login' />
