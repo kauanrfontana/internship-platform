@@ -4,7 +4,7 @@ import { router } from './pages/routes'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from './components/theme/theme-provider'
-import { AuthProvider } from './middlwares/auth-provider'
+import { AuthProvider } from './middlewares/auth-provider'
 
 export function App() {
   return (
