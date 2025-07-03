@@ -38,8 +38,6 @@ export function SignIn() {
       // Simula chamada API
       await new Promise(resolve => setTimeout(resolve, 2000))
 
-      login('student')
-
       toast.success('Login realizado com sucesso!')
       navigate('/')
     } catch {
