@@ -1,4 +1,4 @@
-import { GraduationCap, Home, MessageCircleQuestion, Calendar, Briefcase } from 'lucide-react'
+import { GraduationCap, Home, MessageCircleQuestion, Calendar, Briefcase, ClipboardList } from 'lucide-react'
 
 import { NavLink } from './nav-link'
 import { Separator } from './ui/separator'
@@ -29,6 +29,10 @@ export function Header() {
           <NavLink to="/faq">
             <MessageCircleQuestion className="h-4 w-4" />
             FAQ
+          </NavLink>
+          <NavLink to="/relatorios">
+            <ClipboardList className="h-4 w-4" />
+            Relatórios
           </NavLink>
         </nav>
 
