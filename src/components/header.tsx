@@ -1,4 +1,4 @@
-import { GraduationCap, Home, MessageCircleQuestion, Calendar, Briefcase } from 'lucide-react'
+import { GraduationCap, Home, MessageCircleQuestion, Calendar } from 'lucide-react'
 
 import { NavLink } from './nav-link'
 import { Separator } from './ui/separator'

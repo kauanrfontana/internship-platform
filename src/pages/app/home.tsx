@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Progress } from '@/components/ui/progress'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/middlewares/auth-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Clock, Briefcase, Calendar } from 'lucide-react'
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { InternshipDetailsModal } from '@/components/internship-details-modal'
 import { InfoRow } from '@/components/info-row'
 import { Internship, InternshipWithExtra } from '@/types/internship'
+import { ProgressSection } from '@/components/progress-section'
 
 const internships: Internship[] = [
   {
@@ -80,9 +82,20 @@ const statusColors: Record<Internship['status'], string> = {
   'Pendente': 'bg-red-100 text-red-800',
 }
 
-export function StudentHome() {
+export function Home() {
+  const { isAuthenticated, role } = useAuth()
+  const navigate = useNavigate()
+
   const [progress, setProgress] = useState(0)
   const [selectedInternship, setSelectedInternship] = useState<InternshipWithExtra | null>(null)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/sign-in')
+    }
+  }, [isAuthenticated, navigate])
+
+  if (!isAuthenticated) return null
 
   const currentInternship = internships.find(i => i.status === 'Em andamento')
 
@@ -97,23 +110,21 @@ export function StudentHome() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Olá, aluno!</h1>
-      <p className="text-muted-foreground">Acompanhe seu estágio e fique por dentro das novidades.</p>
+      <h1 className="text-2xl font-semibold">Olá, {role === 'student' ? 'aluno' : role === 'advisor' ? 'orientador' : 'articulador'}!</h1>
+      <p className="text-muted-foreground">
+        {role === 'student' && 'Acompanhe seu estágio e fique por dentro das novidades.'}
+        {role === 'advisor' && 'Gerencie seus orientandos e monitore prazos.'}
+        {role === 'articulator' && 'Acompanhe o andamento dos estágios.'}
+      </p>
 
-      {/* Seção: Progresso e Notícias */}
       {currentInternship && (
         <div className="flex gap-6 flex-col md:flex-row">
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>Progresso do Estágio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={progress} />
-              <p className="text-sm mt-2 text-muted-foreground">
-                {currentInternship.status} • Início: {currentInternship.startDate} • Término: {currentInternship.endDate}
-              </p>
-            </CardContent>
-          </Card>
+          <ProgressSection
+            progress={progress}
+            startDate={currentInternship.startDate}
+            endDate={currentInternship.endDate}
+            status={currentInternship.status}
+          />
 
           <Card className="flex-1">
             <CardHeader>
@@ -131,10 +142,12 @@ export function StudentHome() {
         </div>
       )}
 
-      {/* Seção: Estágio Atual */}
+      {/* Estágio atual */}
       {currentInternship && (
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Estágio Atual</h2>
+          <h2 className="text-lg font-semibold">
+            {role === 'student' ? 'Estágio Atual' : 'Orientando Ativo'}
+          </h2>
           <Card>
             <CardContent className="p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
@@ -151,22 +164,26 @@ export function StudentHome() {
                 />
                 <InfoRow icon={<Calendar />} label="Período" value={`${currentInternship.startDate} → ${currentInternship.endDate}`} />
               </div>
-              <Button
-                onClick={() =>
-                  setSelectedInternship({ ...currentInternship, ...extraFields[currentInternship.id] })
-                }
-              >
-                Acessar Estágio
-              </Button>
+              {role === 'student' && (
+                <Button
+                  onClick={() =>
+                    setSelectedInternship({ ...currentInternship, ...extraFields[currentInternship.id] })
+                  }
+                >
+                  Acessar Estágio
+                </Button>
+              )}
             </CardContent>
           </Card>
         </section>
       )}
 
-      {/* Seção: Estágios Anteriores */}
+      {/* Estágios anteriores */}
       {internships.some(i => i.status !== 'Em andamento') && (
         <section className="space-y-2 mt-6">
-          <h2 className="text-lg font-semibold">Estágios Anteriores</h2>
+          <h2 className="text-lg font-semibold">
+            {role === 'student' ? 'Estágios Anteriores' : 'Histórico de Estágios'}
+          </h2>
           {internships
             .filter(i => i.status !== 'Em andamento')
             .map(internship => (
@@ -186,21 +203,22 @@ export function StudentHome() {
                     />
                     <InfoRow icon={<Calendar />} label="Período" value={`${internship.startDate} → ${internship.endDate}`} />
                   </div>
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      setSelectedInternship({ ...internship, ...extraFields[internship.id] })
-                    }
-                  >
-                    Ver Detalhes
-                  </Button>
+                  {role === 'student' && (
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        setSelectedInternship({ ...internship, ...extraFields[internship.id] })
+                      }
+                    >
+                      Ver Detalhes
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
         </section>
       )}
 
-      {/* Modal de Detalhes */}
       {selectedInternship && (
         <InternshipDetailsModal
           internship={selectedInternship}
