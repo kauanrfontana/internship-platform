@@ -1,13 +1,19 @@
+// src/pages/app/home.tsx
+
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/middlewares/auth-provider'
+
+import { internshipColumns } from '@/components/data-table-internships/columns'
+import { DataTableInternships } from '@/components/data-table-internships/table'
+import { Internship, InternshipWithExtra } from '@/types/internship'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Clock, Briefcase, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { InternshipDetailsModal } from '@/components/internship-details-modal'
 import { InfoRow } from '@/components/info-row'
-import { Internship, InternshipWithExtra } from '@/types/internship'
 import { ProgressSection } from '@/components/progress-section'
 
 const internships: Internship[] = [
@@ -18,6 +24,7 @@ const internships: Internship[] = [
     status: 'Em andamento',
     startDate: '2025-03-01',
     endDate: '2025-09-01',
+    studentName: 'João Pedro', 
   },
   {
     id: 2,
@@ -26,6 +33,7 @@ const internships: Internship[] = [
     status: 'Concluído',
     startDate: '2024-01-01',
     endDate: '2024-07-01',
+    studentName: 'Maria Clara', 
   },
 ]
 
@@ -108,23 +116,30 @@ export function Home() {
     setProgress(percent)
   }, [currentInternship])
 
+  // Combina dados extras com estágios e adiciona nome do estagiário
+  const internshipsWithExtra = internships.map(i => ({
+    ...i,
+    ...extraFields[i.id],
+  }))
+
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Olá, {role === 'student' ? 'aluno' : role === 'advisor' ? 'orientador' : 'articulador'}!</h1>
+      <h1 className="text-2xl font-semibold">
+        Olá, {role === 'student' ? 'aluno' : role === 'advisor' ? 'orientador' : 'articulador'}!
+      </h1>
       <p className="text-muted-foreground">
         {role === 'student' && 'Acompanhe seu estágio e fique por dentro das novidades.'}
         {role === 'advisor' && 'Gerencie seus orientandos e monitore prazos.'}
         {role === 'articulator' && 'Acompanhe o andamento dos estágios.'}
       </p>
 
-      {currentInternship && (
-        <div className="flex gap-6 flex-col md:flex-row">
-          <ProgressSection
-            progress={progress}
-            startDate={currentInternship.startDate}
-            endDate={currentInternship.endDate}
-            status={currentInternship.status}
-          />
+              <div className="flex gap-6 flex-col md:flex-row">
+<ProgressSection
+  progress={progress}
+  startDate={currentInternship?.startDate ?? 'N/A'}
+  endDate={currentInternship?.endDate ?? 'N/A'}
+  status={currentInternship?.status ?? 'Sem estágio ativo'}
+/>
 
           <Card className="flex-1">
             <CardHeader>
@@ -140,14 +155,11 @@ export function Home() {
             </CardContent>
           </Card>
         </div>
-      )}
 
-      {/* Estágio atual */}
-      {currentInternship && (
+      {/* ESTUDANTE: Estágio atual */}
+      {role === 'student' && currentInternship && (
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold">
-            {role === 'student' ? 'Estágio Atual' : 'Orientando Ativo'}
-          </h2>
+          <h2 className="text-lg font-semibold">Estágio Atual</h2>
           <Card>
             <CardContent className="p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
@@ -164,26 +176,22 @@ export function Home() {
                 />
                 <InfoRow icon={<Calendar />} label="Período" value={`${currentInternship.startDate} → ${currentInternship.endDate}`} />
               </div>
-              {role === 'student' && (
-                <Button
-                  onClick={() =>
-                    setSelectedInternship({ ...currentInternship, ...extraFields[currentInternship.id] })
-                  }
-                >
-                  Acessar Estágio
-                </Button>
-              )}
+              <Button
+                onClick={() =>
+                  setSelectedInternship({ ...currentInternship, ...extraFields[currentInternship.id] })
+                }
+              >
+                Acessar Estágio
+              </Button>
             </CardContent>
           </Card>
         </section>
       )}
 
-      {/* Estágios anteriores */}
-      {internships.some(i => i.status !== 'Em andamento') && (
+      {/* ESTUDANTE: Estágios anteriores */}
+      {role === 'student' && internships.some(i => i.status !== 'Em andamento') && (
         <section className="space-y-2 mt-6">
-          <h2 className="text-lg font-semibold">
-            {role === 'student' ? 'Estágios Anteriores' : 'Histórico de Estágios'}
-          </h2>
+          <h2 className="text-lg font-semibold">Estágios Anteriores</h2>
           {internships
             .filter(i => i.status !== 'Em andamento')
             .map(internship => (
@@ -203,27 +211,34 @@ export function Home() {
                     />
                     <InfoRow icon={<Calendar />} label="Período" value={`${internship.startDate} → ${internship.endDate}`} />
                   </div>
-                  {role === 'student' && (
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        setSelectedInternship({ ...internship, ...extraFields[internship.id] })
-                      }
-                    >
-                      Ver Detalhes
-                    </Button>
-                  )}
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      setSelectedInternship({ ...internship, ...extraFields[internship.id] })
+                    }
+                  >
+                    Ver Detalhes
+                  </Button>
                 </CardContent>
               </Card>
             ))}
         </section>
       )}
 
+      {/* ORIENTADOR ou ARTICULADOR: mostrar tabela completa */}
+      {(role === 'advisor' || role === 'articulator') && (
+        <section className="space-y-2 mt-6">
+          <h2 className="text-lg font-semibold">Histórico de Estágios</h2>
+          <DataTableInternships columns={internshipColumns} data={internshipsWithExtra} />
+        </section>
+      )}
+
+      {/* Modal de detalhes do estágio */}
       {selectedInternship && (
         <InternshipDetailsModal
           internship={selectedInternship}
           open={!!selectedInternship}
-          onOpenChange={(open: any) => {
+          onOpenChange={(open: boolean) => {
             if (!open) setSelectedInternship(null)
           }}
         />

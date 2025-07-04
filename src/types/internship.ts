@@ -1,5 +1,6 @@
 export type Internship = {
   id: number
+  studentName: string
   company: string
   position: string
   status: 'Em andamento' | 'Concluído' | 'Pendente'
