@@ -4,15 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Clock, Briefcase, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
-type Internship = {
-  id: number
-  company: string
-  position: string
-  status: 'Em andamento' | 'Concluído' | 'Pendente'
-  startDate: string
-  endDate: string
-}
+import { InternshipDetailsModal } from '@/components/internship-details-modal'
+import { InfoRow } from '@/components/info-row'
+import { Internship, InternshipWithExtra } from '@/types/internship'
 
 const internships: Internship[] = [
   {
@@ -32,6 +26,40 @@ const internships: Internship[] = [
     endDate: '2024-07-01',
   },
 ]
+
+const extraFields: Record<number, Omit<InternshipWithExtra, keyof Internship>> = {
+  1: {
+    tceEntregue: true,
+    prazoMaximo: '2025-09-15',
+    orientadorAtual: 'Prof. João da Silva',
+    orientadorAnterior: 'Prof. Ana Souza',
+    fpe: 'Sim',
+    relatorios: {
+      parcial1: '2025-05-01',
+      parcial2: '2025-07-01',
+      parcial3: 'Pendente',
+      final: 'Pendente',
+    },
+    prorrogações: 'Nenhuma',
+    supervisor: 'Carlos Menezes',
+    obrigatorio: true,
+  },
+  2: {
+    tceEntregue: true,
+    prazoMaximo: '2024-07-15',
+    orientadorAtual: 'Prof. Beatriz Costa',
+    fpe: 'Sim',
+    relatorios: {
+      parcial1: '2024-03-01',
+      parcial2: '2024-05-01',
+      parcial3: '2024-06-15',
+      final: '2024-07-01',
+    },
+    prorrogações: '1 vez',
+    supervisor: 'Fernanda Oliveira',
+    obrigatorio: false,
+  },
+}
 
 const mockNews = [
   {
@@ -54,33 +82,27 @@ const statusColors: Record<Internship['status'], string> = {
 
 export function StudentHome() {
   const [progress, setProgress] = useState(0)
+  const [selectedInternship, setSelectedInternship] = useState<InternshipWithExtra | null>(null)
 
-  // Pega o estágio em andamento
   const currentInternship = internships.find(i => i.status === 'Em andamento')
 
   useEffect(() => {
     if (!currentInternship) return
-
     const start = new Date(currentInternship.startDate).getTime()
     const end = new Date(currentInternship.endDate).getTime()
     const today = Date.now()
-
     const percent = Math.min(100, Math.max(0, ((today - start) / (end - start)) * 100))
     setProgress(percent)
   }, [currentInternship])
-
-  function handleAccessInternship(id: number) {
-    alert(`Acessar detalhes do estágio ${id}`)
-  }
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold">Olá, aluno!</h1>
       <p className="text-muted-foreground">Acompanhe seu estágio e fique por dentro das novidades.</p>
 
-      {/* Progresso e Notícias */}
+      {/* Seção: Progresso e Notícias */}
       {currentInternship && (
-        <div className="flex gap-6">
+        <div className="flex gap-6 flex-col md:flex-row">
           <Card className="flex-1">
             <CardHeader>
               <CardTitle>Progresso do Estágio</CardTitle>
@@ -109,36 +131,41 @@ export function StudentHome() {
         </div>
       )}
 
-      {/* Estágio atual */}
+      {/* Seção: Estágio Atual */}
       {currentInternship && (
-        <div className="space-y-2">
+        <section className="space-y-2">
           <h2 className="text-lg font-semibold">Estágio Atual</h2>
           <Card>
             <CardContent className="p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                <InfoRow icon={<Briefcase className="w-5 h-5 text-muted-foreground" />} label="Empresa" value={currentInternship.company} />
-                <InfoRow icon={<Clock className="w-5 h-5 text-muted-foreground" />} label="Função" value={currentInternship.position} />
-                <InfoRow icon={<CheckCircle className="w-5 h-5 text-muted-foreground" />} label="Status" value={
-                  <Badge className={`${statusColors[currentInternship.status]} px-2 py-0.5 text-sm`}>
-                    {currentInternship.status}
-                  </Badge>
-                } />
-                <InfoRow icon={<Calendar className="w-5 h-5 text-muted-foreground" />} label="Período" value={`${currentInternship.startDate} → ${currentInternship.endDate}`} />
+                <InfoRow icon={<Briefcase />} label="Empresa" value={currentInternship.company} />
+                <InfoRow icon={<Clock />} label="Função" value={currentInternship.position} />
+                <InfoRow
+                  icon={<CheckCircle />}
+                  label="Status"
+                  value={
+                    <Badge className={`${statusColors[currentInternship.status]} px-2 py-0.5 text-sm`}>
+                      {currentInternship.status}
+                    </Badge>
+                  }
+                />
+                <InfoRow icon={<Calendar />} label="Período" value={`${currentInternship.startDate} → ${currentInternship.endDate}`} />
               </div>
-
-              <div className="w-full md:w-auto">
-                <Button onClick={() => handleAccessInternship(currentInternship.id)} size="lg" className="w-full md:w-auto">
-                  Acessar Estágio
-                </Button>
-              </div>
+              <Button
+                onClick={() =>
+                  setSelectedInternship({ ...currentInternship, ...extraFields[currentInternship.id] })
+                }
+              >
+                Acessar Estágio
+              </Button>
             </CardContent>
           </Card>
-        </div>
+        </section>
       )}
 
-      {/* Estágios anteriores */}
+      {/* Seção: Estágios Anteriores */}
       {internships.some(i => i.status !== 'Em andamento') && (
-        <div className="space-y-2 mt-6">
+        <section className="space-y-2 mt-6">
           <h2 className="text-lg font-semibold">Estágios Anteriores</h2>
           {internships
             .filter(i => i.status !== 'Em andamento')
@@ -146,38 +173,43 @@ export function StudentHome() {
               <Card key={internship.id}>
                 <CardContent className="p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                    <InfoRow icon={<Briefcase className="w-5 h-5 text-muted-foreground" />} label="Empresa" value={internship.company} />
-                    <InfoRow icon={<Clock className="w-5 h-5 text-muted-foreground" />} label="Função" value={internship.position} />
-                    <InfoRow icon={<CheckCircle className="w-5 h-5 text-muted-foreground" />} label="Status" value={
-                      <Badge className={`${statusColors[internship.status]} px-2 py-0.5 text-sm`}>
-                        {internship.status}
-                      </Badge>
-                    } />
-                    <InfoRow icon={<Calendar className="w-5 h-5 text-muted-foreground" />} label="Período" value={`${internship.startDate} → ${internship.endDate}`} />
+                    <InfoRow icon={<Briefcase />} label="Empresa" value={internship.company} />
+                    <InfoRow icon={<Clock />} label="Função" value={internship.position} />
+                    <InfoRow
+                      icon={<CheckCircle />}
+                      label="Status"
+                      value={
+                        <Badge className={`${statusColors[internship.status]} px-2 py-0.5 text-sm`}>
+                          {internship.status}
+                        </Badge>
+                      }
+                    />
+                    <InfoRow icon={<Calendar />} label="Período" value={`${internship.startDate} → ${internship.endDate}`} />
                   </div>
-
-                  <div className="w-full md:w-auto">
-                    <Button onClick={() => handleAccessInternship(internship.id)} size="sm" variant="secondary">
-                      Ver Detalhes
-                    </Button>
-                  </div>
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      setSelectedInternship({ ...internship, ...extraFields[internship.id] })
+                    }
+                  >
+                    Ver Detalhes
+                  </Button>
                 </CardContent>
               </Card>
             ))}
-        </div>
+        </section>
       )}
-    </div>
-  )
-}
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode, label: string, value: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      {icon}
-      <div>
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="text-base font-medium text-foreground">{value}</p>
-      </div>
+      {/* Modal de Detalhes */}
+      {selectedInternship && (
+        <InternshipDetailsModal
+          internship={selectedInternship}
+          open={!!selectedInternship}
+          onOpenChange={(open: any) => {
+            if (!open) setSelectedInternship(null)
+          }}
+        />
+      )}
     </div>
   )
 }

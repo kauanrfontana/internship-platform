@@ -18,10 +18,6 @@ export function Header() {
             <Home className="h-4 w-4" />
             Início
           </NavLink>
-          <NavLink to="/estagios">
-            <Briefcase className="h-4 w-4" />
-            Estágios
-          </NavLink>
           <NavLink to="/calendario">
             <Calendar className="h-4 w-4" />
             Calendário
