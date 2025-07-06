@@ -82,15 +82,23 @@ COLUMNS_MAP_BY_TAB = {
         "consideracoes_encaminhamentos": 14
     },
     "Visitas do Orientador": {
-        "cargo": 0,
-        "nome_estagiario": 1,
-        "obrigatorio": 2,
-        "tempo_transcorrido_estagio": 3,
-        "atividades_principais_atuais": 4,
-        "progresso_atividades_anteriores": 5,
-        "comentarios_supervisor_estagiario": 6,
-        "comentarios_estagiario": 7,
-        "consideracoes_encaminhamentos": 8
+        "orientador": 0,
+        "data_visita": 1,
+        "periodo_visita": 2,
+        "tipo_visita": 3,
+        "efetivada": 4,
+        "empresa": 5,
+        "tipificacao_empresa": 6,
+        "supervisor_na_empresa": 7,
+        "cargo": 8,
+        "nome_estagiario": 9,
+        "obrigatorio": 10,
+        "tempo_transcorrido_estagio": 11,
+        "atividade_principais_atuais": 12,
+        "progresso_atividades_anteriores": 13,
+        "comentario_supervisor": 14,
+        "comentario_estagiario": 15,
+        "consideracoes_encaminhamentos": 16
     },
     "Usuários": {
         "nome": 0,
@@ -126,11 +134,10 @@ def spreadsheet_is_empty(values: list, linha_inicial: int)-> bool:
 
 def get_data_from_tab(tab_name: str, service)-> list:
     sheet = service.spreadsheets()
-    # Adicione aspas simples ao redor do nome da aba para garantir que seja interpretado corretamente
     result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=f"'{tab_name}'").execute()
     values = result.get("values", [])
 
-    linha_inicial_dados = START_LINES_MAP[tab_name] # Corrected: Used START_LINES_MAP[tab_name]
+    linha_inicial_dados = START_LINES_MAP[tab_name] 
 
     if spreadsheet_is_empty(values, linha_inicial_dados):
         return []
@@ -145,7 +152,7 @@ def get_data_from_tab(tab_name: str, service)-> list:
         
         obj = {}
         for maped_key, column_index in COLUMNS_MAP_BY_TAB[tab_name].items():
-            valor = row[column_index].strip() if column_index < len(row) and column_index < len(row) else "" # Added column_index < len(row) check
+            valor = row[column_index].strip() if column_index < len(row) and column_index < len(row) else "" 
             
             # Lógica de aninhamento corrigida para múltiplos níveis
             parts = maped_key.split('.')
