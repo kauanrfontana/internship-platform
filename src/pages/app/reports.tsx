@@ -29,14 +29,6 @@ export function Reports() {
               </div>
             )}
 
-            {role === 'student' && (
-              <div className="flex justify-center">
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                  EXPORTAR RELATÓRIO DE TODOS OS ESTÁGIOS
-                </Button>
-              </div>
-            )}
-
             <Card className="bg-gray-200 border-gray-300 shadow-xl">
               <CardContent className="p-8">
                 <h2 className="text-center text-gray-800 font-semibold text-xl mb-8">

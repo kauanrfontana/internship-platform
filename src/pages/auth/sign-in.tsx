@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,10 +33,7 @@ export function SignIn() {
 
   async function handleSignIn(data: SignInForm) {
     try {
-      console.log(data)
-
-      // Simula chamada API
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      login({login: data.email, password: data.password})
 
       toast.success('Login realizado com sucesso!')
       navigate('/')
@@ -45,33 +42,11 @@ export function SignIn() {
     }
   }
 
-  function handleLoginAsStudent() {
-    login('student')
-    toast.success('Logado como Aluno')
-  }
-
-  function handleLoginAsAdvisor() {
-    login('advisor')
-    toast.success('Logado como Orientador')
-  }
-
-  function handleLoginAsArticulator() {
-    login('articulator')
-    toast.success('Logado como Articulador')
-  }
-
   return (
     <>
       <Helmet title='Login' />
 
       <div className='p-8'>
-
-        <Button asChild variant="ghost" className="absolute right-8 top-8">
-          <Link to="/sign-up">
-            Novo usuário
-          </Link>
-        </Button>
-
         <div className='w-[350px] flex flex-col justify-center gap-6'>
           <div className='flex flex-col gap-2 text-center'>
             <h1 className='text-2xl font-semibold tracking-tight'>Acessar sua conta</h1>
@@ -98,6 +73,13 @@ export function SignIn() {
             <div className="mt-6 flex flex-col gap-2">
               <Button
                 disabled={!isFormFilled || isSubmitting}
+                onClick={handleSubmit(handleSignIn)}
+                variant="default"
+              >
+                Entrar
+              </Button>
+              {/* <Button
+                disabled={!isFormFilled || isSubmitting}
                 onClick={handleLoginAsStudent}
                 variant="default"
               >
@@ -116,7 +98,7 @@ export function SignIn() {
                 variant="default"
               >
                 Entrar como Articulador
-              </Button>
+              </Button> */}
             </div>
           </form>
         </div>

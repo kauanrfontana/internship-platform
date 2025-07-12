@@ -1,11 +1,13 @@
-import { GraduationCap, Home, MessageCircleQuestion, Calendar, Briefcase, ClipboardList } from 'lucide-react'
+import { GraduationCap, Home, MessageCircleQuestion, Calendar, ClipboardList } from 'lucide-react'
 
 import { NavLink } from './nav-link'
 import { Separator } from './ui/separator'
 import { ThemeToggle } from './theme/theme-toggle'
 import { AccountMenu } from './account-menu'
+import { useAuth } from '@/middlewares/auth-provider'
 
 export function Header() {
+  const { role } = useAuth()
   return (
     <div className="border-b">
       <div className="flex h-16 items-center gap-6 px-6">
@@ -26,16 +28,17 @@ export function Header() {
             <MessageCircleQuestion className="h-4 w-4" />
             FAQ
           </NavLink>
-          <NavLink to="/relatorios">
+          {role != 'student' && <NavLink to="/relatorios">
             <ClipboardList className="h-4 w-4" />
             Relatórios
-          </NavLink>
+          </NavLink>}
+
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <ThemeToggle/>
+          <ThemeToggle />
 
-          <AccountMenu/>
+          <AccountMenu />
         </div>
       </div>
     </div>

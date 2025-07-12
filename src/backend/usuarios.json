@@ -1,0 +1,14 @@
+[
+  {
+    "nome": "Jorge Henrique B. Casagrande",
+    "tipo": "Articulador",
+    "login": "casagrande@ifsc.edu.br",
+    "senha": "123456"
+  },
+  {
+    "nome": "Henrique",
+    "tipo": "Aluno",
+    "login": "h@email.com",
+    "senha": "123"
+  }
+]
