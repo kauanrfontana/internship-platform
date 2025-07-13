@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "google-auth-library": "^10.1.0",
     "googleapis": "^152.0.0",
     "node-schedule": "^2.1.1"
