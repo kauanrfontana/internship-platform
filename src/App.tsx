@@ -8,15 +8,15 @@ import { AuthProvider } from './middlewares/auth-provider'
 
 export function App() {
   return (
-    <HelmetProvider>
-      <ThemeProvider storageKey="intership-platform-theme" defaultTheme='dark'>
-        <Helmet titleTemplate='%s | internship.platform'/>
-        <Toaster richColors/>
+    <AuthProvider>
+      <HelmetProvider>
+        <ThemeProvider storageKey="intership-platform-theme" defaultTheme='dark'>
+          <Helmet titleTemplate='%s | internship.platform' />
+          <Toaster richColors />
 
-        <AuthProvider>
           <RouterProvider router={router} />
-        </AuthProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+        </ThemeProvider>
+      </HelmetProvider>
+    </AuthProvider>
   )
 }

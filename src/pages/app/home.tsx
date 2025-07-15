@@ -1,74 +1,95 @@
-// src/pages/app/home.tsx
-
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/middlewares/auth-provider'
 
 import { internshipColumns } from '@/components/data-table-internships/columns'
 import { DataTableInternships } from '@/components/data-table-internships/table'
-import { Internship, InternshipWithExtra } from '@/types/internship'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { CheckCircle, Clock, Briefcase, Calendar } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { InternshipDetailsModal } from '@/components/internship-details-modal'
-import { InfoRow } from '@/components/info-row'
 import { ProgressSection } from '@/components/progress-section'
+import { InternshipCard } from '@/components/internship-card'
 
-const internships: Internship[] = [
-  {
-    id: 1,
-    company: 'Empresa XPTO',
-    position: 'Frontend',
-    status: 'Em andamento',
-    startDate: '2025-03-01',
-    endDate: '2025-09-01',
-    studentName: 'João Pedro', 
-  },
-  {
-    id: 2,
-    company: 'Empresa Y',
-    position: 'Backend',
-    status: 'Concluído',
-    startDate: '2024-01-01',
-    endDate: '2024-07-01',
-    studentName: 'Maria Clara', 
-  },
-]
+import registroDeEstagiosData from '@/backend/registro_de_estagios.json';
 
-const extraFields: Record<number, Omit<InternshipWithExtra, keyof Internship>> = {
-  1: {
-    tceEntregue: true,
-    prazoMaximo: '2025-09-15',
-    orientadorAtual: 'Prof. João da Silva',
-    orientadorAnterior: 'Prof. Ana Souza',
-    fpe: 'Sim',
+import { InternshipStatus, Internship, InternshipWithExtra } from '@/types/internship';
+import { InternshipDetailsModal } from '@/components/internship-details-modal'
+
+
+function parseDateString(dateStr: string): string | null {
+  if (!dateStr || dateStr === '-' || dateStr === '#VALUE!' || dateStr.toLowerCase() === 'em ser') {
+    return null;
+  }
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+    return `${year}-${month}-${day}`;
+  }
+  return null;
+}
+
+function deriveStatus(internshipJson: any): InternshipStatus {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDateStr = parseDateString(internshipJson.inicio_tce_aprovado);
+  const endDateStr = parseDateString(internshipJson.termino_previsto);
+  const conclusionDateStr = parseDateString(internshipJson.conclusao_do_estagio?.data_realizado);
+
+  if (conclusionDateStr) {
+    return 'Concluído';
+  }
+
+  if (startDateStr && endDateStr) {
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
+    if (today >= startDate && today <= endDate) {
+      return 'Em andamento';
+    } else if (today > endDate) {
+      return 'Pendente';
+    }
+  }
+
+  if (startDateStr && new Date(startDateStr) > today) {
+    return 'Pendente';
+  }
+
+  return 'Pendente';
+}
+
+function mapJsonToInternship(jsonItem: any, id: number): InternshipWithExtra {
+  const startDate = parseDateString(jsonItem.inicio_tce_aprovado) || '';
+  const endDate = parseDateString(jsonItem.termino_previsto) || '';
+  const status = deriveStatus(jsonItem);
+
+  const prorrogacoesCount = Object.values(jsonItem.prorrogacoes_do_estagio || {}).filter(Boolean).length;
+  const prorrogacoesText = prorrogacoesCount > 0 ? `${prorrogacoesCount} vez(es)` : 'Nenhuma';
+
+  return {
+    id: id,
+    company: jsonItem.empresa || 'N/A',
+    status: status,
+    startDate: startDate,
+    endDate: endDate,
+    studentName: jsonItem.nome_aluno || 'N/A',
+    tceEntregue: jsonItem.tce_entregue && jsonItem.tce_entregue !== '-' && jsonItem.tce_entregue !== '#VALUE!' && jsonItem.tce_entregue.toLowerCase() !== 'em ser' ? true : false,
+    prazoMaximo: parseDateString(jsonItem.prazo_maximo) || 'N/A',
+    orientadorAtual: jsonItem.orientador_designado_por_articulador_atual || 'N/A',
+    orientadorAnterior: jsonItem.orientador_designado_por_articulador_anterior || undefined,
+    fpe: jsonItem.fpe?.realizado || 'N/A',
     relatorios: {
-      parcial1: '2025-05-01',
-      parcial2: '2025-07-01',
-      parcial3: 'Pendente',
-      final: 'Pendente',
+      parcial1: parseDateString(jsonItem.relatorios?.parcial_1?.entregue) || 'Pendente',
+      parcial2: parseDateString(jsonItem.relatorios?.parcial_2?.entregue) || 'Pendente',
+      parcial3: parseDateString(jsonItem.relatorios?.parcial_3?.entregue) || 'Pendente',
+      final: parseDateString(jsonItem.relatorios?.final?.entregue) || 'Pendente',
     },
-    prorrogações: 'Nenhuma',
-    supervisor: 'Carlos Menezes',
-    obrigatorio: true,
-  },
-  2: {
-    tceEntregue: true,
-    prazoMaximo: '2024-07-15',
-    orientadorAtual: 'Prof. Beatriz Costa',
-    fpe: 'Sim',
-    relatorios: {
-      parcial1: '2024-03-01',
-      parcial2: '2024-05-01',
-      parcial3: '2024-06-15',
-      final: '2024-07-01',
-    },
-    prorrogações: '1 vez',
-    supervisor: 'Fernanda Oliveira',
-    obrigatorio: false,
-  },
+    prorrogacoes: prorrogacoesText,
+    supervisor: jsonItem.supervisor_na_empresa || 'N/A',
+    obrigatorio: jsonItem.obrig?.toLowerCase() === 'sim' ? true : false,
+    rawJson: jsonItem,
+  };
 }
 
 const mockNews = [
@@ -90,10 +111,14 @@ const statusColors: Record<Internship['status'], string> = {
   'Pendente': 'bg-red-100 text-red-800',
 }
 
+const initialAllInternships: InternshipWithExtra[] = registroDeEstagiosData.map((item: any, index: number) => mapJsonToInternship(item, index + 1));
+
 export function Home() {
-  const { isAuthenticated, role } = useAuth()
+  const { isAuthenticated, role, user } = useAuth()
   const navigate = useNavigate()
 
+  const [allInternships] = useState<InternshipWithExtra[]>(initialAllInternships);
+  const [filteredInternships, setFilteredInternships] = useState<InternshipWithExtra[]>([]);
   const [progress, setProgress] = useState(0)
   const [selectedInternship, setSelectedInternship] = useState<InternshipWithExtra | null>(null)
 
@@ -103,29 +128,54 @@ export function Home() {
     }
   }, [isAuthenticated, navigate])
 
-  if (!isAuthenticated) return null
+  useEffect(() => {
+    if (!user || !allInternships.length) {
+      setFilteredInternships([]);
+      return;
+    }
 
-  const currentInternship = internships.find(i => i.status === 'Em andamento')
+    let currentFiltered: InternshipWithExtra[] = [];
+    const normalizeName = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const userNameNormalized = normalizeName(user.nome);
+
+
+    if (role === 'student') {
+      currentFiltered = allInternships.filter(
+        (internship) => normalizeName(internship.studentName) === userNameNormalized
+      );
+    } else if (role === 'advisor') {
+      currentFiltered = allInternships.filter(
+        (internship) =>
+          normalizeName(internship.orientadorAtual || '') === userNameNormalized ||
+          normalizeName(internship.orientadorAnterior || '') === userNameNormalized
+      );
+    } else if (role === 'articulator') {
+      currentFiltered = allInternships;
+    }
+    setFilteredInternships(currentFiltered);
+  }, [allInternships, role, user]);
+
+  const currentInternship = filteredInternships.find(i => i.status === 'Em andamento');
 
   useEffect(() => {
-    if (!currentInternship) return
-    const start = new Date(currentInternship.startDate).getTime()
-    const end = new Date(currentInternship.endDate).getTime()
-    const today = Date.now()
+    if (!currentInternship) {
+      setProgress(0);
+      return;
+    }
+    const start = new Date(currentInternship.startDate).getTime();
+    const end = new Date(currentInternship.endDate).getTime();
+    const today = Date.now();
     const percent = Math.min(100, Math.max(0, ((today - start) / (end - start)) * 100))
     setProgress(percent)
-  }, [currentInternship])
+  }, [currentInternship]);
 
-  // Combina dados extras com estágios e adiciona nome do estagiário
-  const internshipsWithExtra = internships.map(i => ({
-    ...i,
-    ...extraFields[i.id],
-  }))
+  if (!isAuthenticated) return null
+
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold">
-        Olá, {role === 'student' ? 'aluno' : role === 'advisor' ? 'orientador' : 'articulador'}!
+        Olá, {user?.nome || (role === 'student' ? 'aluno' : role === 'advisor' ? 'orientador' : 'articulador')}!
       </h1>
       <p className="text-muted-foreground">
         {role === 'student' && 'Acompanhe seu estágio e fique por dentro das novidades.'}
@@ -133,107 +183,73 @@ export function Home() {
         {role === 'articulator' && 'Acompanhe o andamento dos estágios.'}
       </p>
 
-              <div className="flex gap-6 flex-col md:flex-row">
-<ProgressSection
-  progress={progress}
-  startDate={currentInternship?.startDate ?? 'N/A'}
-  endDate={currentInternship?.endDate ?? 'N/A'}
-  status={currentInternship?.status ?? 'Sem estágio ativo'}
-/>
-
+      <div className="flex gap-6 flex-col md:flex-row">
+        {currentInternship && (
+          <ProgressSection
+            progress={progress}
+            startDate={currentInternship.startDate}
+            endDate={currentInternship.endDate}
+            status={currentInternship.status}
+          />
+        )}
+        {!currentInternship && role === 'student' && (
           <Card className="flex-1">
             <CardHeader>
-              <CardTitle>Notícias</CardTitle>
+              <CardTitle>Nenhum estágio em andamento</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 max-h-48 overflow-y-auto">
-              {mockNews.map(news => (
-                <div key={news.id}>
-                  <h3 className="font-medium">{news.title}</h3>
-                  <p className="text-sm text-muted-foreground">{news.content}</p>
-                </div>
-              ))}
+            <CardContent>
+              <p className="text-muted-foreground">Você não possui um estágio ativo no momento.</p>
             </CardContent>
           </Card>
-        </div>
+        )}
 
-      {/* ESTUDANTE: Estágio atual */}
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Notícias</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 max-h-48 overflow-y-auto">
+            {mockNews.map(news => (
+              <div key={news.id}>
+                <h3 className="font-medium">{news.title}</h3>
+                <p className="text-sm text-muted-foreground">{news.content}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
       {role === 'student' && currentInternship && (
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Estágio Atual</h2>
-          <Card>
-            <CardContent className="p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                <InfoRow icon={<Briefcase />} label="Empresa" value={currentInternship.company} />
-                <InfoRow icon={<Clock />} label="Função" value={currentInternship.position} />
-                <InfoRow
-                  icon={<CheckCircle />}
-                  label="Status"
-                  value={
-                    <Badge className={`${statusColors[currentInternship.status]} px-2 py-0.5 text-sm`}>
-                      {currentInternship.status}
-                    </Badge>
-                  }
-                />
-                <InfoRow icon={<Calendar />} label="Período" value={`${currentInternship.startDate} → ${currentInternship.endDate}`} />
-              </div>
-              <Button
-                onClick={() =>
-                  setSelectedInternship({ ...currentInternship, ...extraFields[currentInternship.id] })
-                }
-              >
-                Acessar Estágio
-              </Button>
-            </CardContent>
-          </Card>
+          <InternshipCard
+            internship={currentInternship}
+            onClick={() => setSelectedInternship(currentInternship)}
+          />
         </section>
       )}
 
-      {/* ESTUDANTE: Estágios anteriores */}
-      {role === 'student' && internships.some(i => i.status !== 'Em andamento') && (
+      {role === 'student' && filteredInternships.some(i => i.status !== 'Em andamento') && (
         <section className="space-y-2 mt-6">
           <h2 className="text-lg font-semibold">Estágios Anteriores</h2>
-          {internships
+          {filteredInternships
             .filter(i => i.status !== 'Em andamento')
             .map(internship => (
-              <Card key={internship.id}>
-                <CardContent className="p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                    <InfoRow icon={<Briefcase />} label="Empresa" value={internship.company} />
-                    <InfoRow icon={<Clock />} label="Função" value={internship.position} />
-                    <InfoRow
-                      icon={<CheckCircle />}
-                      label="Status"
-                      value={
-                        <Badge className={`${statusColors[internship.status]} px-2 py-0.5 text-sm`}>
-                          {internship.status}
-                        </Badge>
-                      }
-                    />
-                    <InfoRow icon={<Calendar />} label="Período" value={`${internship.startDate} → ${internship.endDate}`} />
-                  </div>
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      setSelectedInternship({ ...internship, ...extraFields[internship.id] })
-                    }
-                  >
-                    Ver Detalhes
-                  </Button>
-                </CardContent>
-              </Card>
+              <InternshipCard
+                key={internship.id}
+                internship={internship}
+                onClick={() => setSelectedInternship(internship)}
+              />
             ))}
         </section>
       )}
 
-      {/* ORIENTADOR ou ARTICULADOR: mostrar tabela completa */}
       {(role === 'advisor' || role === 'articulator') && (
         <section className="space-y-2 mt-6">
           <h2 className="text-lg font-semibold">Histórico de Estágios</h2>
-          <DataTableInternships columns={internshipColumns} data={internshipsWithExtra} />
+          <DataTableInternships columns={internshipColumns} data={filteredInternships} />
         </section>
       )}
 
-      {/* Modal de detalhes do estágio */}
       {selectedInternship && (
         <InternshipDetailsModal
           internship={selectedInternship}

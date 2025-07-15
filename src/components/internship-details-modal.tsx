@@ -25,18 +25,16 @@ export function InternshipDetailsModal({
         </DialogHeader>
 
         <div className="space-y-8 mt-6">
-          {/* 1. Informações Gerais */}
           <Section title="Informações Gerais">
-            <Detail label="Nome do Estágio" value={internship.position} />
             <Detail label="Obrigatório" value={internship.obrigatorio ? 'Sim' : 'Não'} />
             <Detail label="Início" value={internship.startDate} />
             <Detail label="Término Previsto" value={internship.endDate} />
-            <Detail label="Prazo Máximo" value={internship.prazoMaximo} />
+            <Detail label="Prazo Máximo" value={internship.prazoMaximo ?? '-'} /> {/* Corrigido aqui */}
           </Section>
 
           {/* 2. Orientação */}
           <Section title="Orientação">
-            <Detail label="Orientador Atual" value={internship.orientadorAtual} />
+            <Detail label="Orientador Atual" value={internship.orientadorAtual ?? '-'} /> {/* Corrigido aqui */}
             <Detail label="Orientador Anterior" value={internship.orientadorAnterior ?? '-'} />
           </Section>
 
@@ -49,16 +47,16 @@ export function InternshipDetailsModal({
           {/* 4. Documentação */}
           <Section title="Documentação">
             <Detail label="TCE Entregue" value={internship.tceEntregue ? 'Sim' : 'Não'} />
-            <Detail label="FPE" value={internship.fpe} />
-            <Detail label="Prorrogações" value={internship.prorrogações ?? 'Nenhuma'} />
+            <Detail label="FPE" value={internship.fpe ?? '-'} /> {/* Corrigido aqui */}
+            <Detail label="Prorrogações" value={internship.prorrogacoes ?? 'Nenhuma'} />
           </Section>
 
           {/* 5. Relatórios */}
           <Section title="Relatórios">
-            <Detail label="Parcial 1" value={internship.relatorios.parcial1 ?? '-'} />
-            <Detail label="Parcial 2" value={internship.relatorios.parcial2 ?? '-'} />
-            <Detail label="Parcial 3" value={internship.relatorios.parcial3 ?? '-'} />
-            <Detail label="Final" value={internship.relatorios.final ?? '-'} />
+            <Detail label="Parcial 1" value={internship.relatorios?.parcial1 ?? '-'} />
+            <Detail label="Parcial 2" value={internship.relatorios?.parcial2 ?? '-'} />
+            <Detail label="Parcial 3" value={internship.relatorios?.parcial3 ?? '-'} />
+            <Detail label="Final" value={internship.relatorios?.final ?? '-'} />
           </Section>
         </div>
 

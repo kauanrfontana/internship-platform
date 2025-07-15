@@ -1,18 +1,13 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-
+import faq from '@/backend/faq.json';
 type FAQ = {
-  question: string;
-  answer: string;
+  pergunta: string;
+  resposta: string;
 };
 
 export function FrequentlyAskedQuestions() {
-  const faqs: FAQ[] = [
-    { question: 'Questão 1', answer: 'Resposta 1' },
-    { question: 'Questão 2', answer: 'Resposta 2' },
-    { question: 'Questão 3', answer: 'Resposta 3' },
-    { question: 'Questão 4', answer: 'Resposta 4' }, 
-  ];
+  const faqs: FAQ[] = faq;
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -36,7 +31,7 @@ export function FrequentlyAskedQuestions() {
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${index}`}
                 >
-                  {faq.question}
+                  {faq.pergunta}
                   <span className="ml-2 text-gray-500">{isOpen ? '−' : '+'}</span>
                 </button>
                 <div
@@ -45,7 +40,7 @@ export function FrequentlyAskedQuestions() {
                     isOpen ? 'max-h-40 opacity-100' : 'max-h-0 overflow-hidden opacity-0'
                   }`}
                 >
-                  <p>{faq.answer}</p>
+                  <p>{faq.resposta}</p>
                 </div>
               </div>
             );

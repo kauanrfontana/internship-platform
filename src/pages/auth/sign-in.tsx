@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { useAuth } from '@/middlewares/auth-provider'
+import { useEffect } from 'react'
 
 const signInForm = z.object({
   email: z.string().email(),
@@ -17,7 +18,7 @@ const signInForm = z.object({
 type SignInForm = z.infer<typeof signInForm>
 
 export function SignIn() {
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   const {
@@ -36,12 +37,18 @@ export function SignIn() {
       login({login: data.email, password: data.password})
 
       toast.success('Login realizado com sucesso!')
-      navigate('/')
+      navigate('/', { replace: true })
     } catch {
       toast.error('Credenciais inválidas')
     }
   }
 
+   useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
+  
   return (
     <>
       <Helmet title='Login' />

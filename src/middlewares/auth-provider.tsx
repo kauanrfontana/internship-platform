@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import logins from '@/backend/usuarios.json';
 
 const rolesMap: any = {
@@ -44,22 +44,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>(null)
   const [user, setUser] = useState<User | null>(null)
 
+   useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      const storedRole = localStorage.getItem('role');
+
+      if (storedUser && storedRole) {
+        const parsedUser: User = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setRole(storedRole as Role);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error("Failed to parse user data from localStorage", error);
+      localStorage.clear();
+    }
+  }, []); 
+
   function login(LoginData: LoginData) {
     const user = logins.find((user: User) => user.login === LoginData.login);
     const passwordMatch = user?.senha === LoginData.password;
-    if(!user || !rolesMap[user.tipo.toLowerCase()] || !passwordMatch){
+    if (!user || !rolesMap[user.tipo.toLowerCase()] || !passwordMatch) {
       throw new Error()
     }
 
     setUser(user)
     setIsAuthenticated(true)
     setRole(rolesMap[user.tipo.toLowerCase()])
+    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('role', rolesMap[user.tipo.toLowerCase()])
   }
 
   function logout() {
     setIsAuthenticated(false)
     setRole(null)
     setUser(null)
+    localStorage.clear()
   }
 
   return (
