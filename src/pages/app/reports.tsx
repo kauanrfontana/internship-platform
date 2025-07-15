@@ -12,11 +12,11 @@ const downloadCsv = (data: any, filename: any, columns: any) => {
   }
 
   // Cria o cabeçalho do CSV
-  const header = columns.map(col => `"${col.header.replace(/"/g, '""')}"`).join(',') + '\n';
+  const header = columns.map((col: any) => `"${col.header.replace(/"/g, '""')}"`).join(',') + '\n';
 
   // Converte os dados para o formato CSV
-  const csvContent = data.map(row =>
-    columns.map(col => {
+  const csvContent = data.map((row: any) =>
+    columns.map((col: any) => {
       let value = row[col.key];
       if (value === null || value === undefined) {
         value = '';

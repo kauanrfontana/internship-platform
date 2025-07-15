@@ -12,7 +12,7 @@ import { InternshipCard } from '@/components/internship-card'
 import registroDeEstagiosData from '@/backend/registro_de_estagios.json';
 import noticiasData from '@/backend/noticias.json'; // Importa o arquivo de notícias
 
-import { InternshipStatus, Internship, InternshipWithExtra } from '@/types/internship';
+import { InternshipStatus, InternshipWithExtra } from '@/types/internship';
 import { InternshipDetailsModal } from '@/components/internship-details-modal'
 
 
