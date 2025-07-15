@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import ptLocale from '@fullcalendar/core/locales/pt';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Tooltip,
   TooltipContent,
@@ -54,8 +54,9 @@ function parseDateString(dateStr: string): string | null {
 export function Calendar() {
   const { user, role } = useAuth();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [hoveredEvent, setHoveredEvent] = useState<CalendarEvent | null>(null);
+  const [clickedEvent, setClickedEvent] = useState<CalendarEvent | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user || !role) {
@@ -200,24 +201,66 @@ export function Calendar() {
     setEvents(allEvents);
   }, [user, role]);
 
-  const handleEventMouseEnter = (info: any) => {
-    const rect = info.el.getBoundingClientRect();
-    setHoveredEvent(info.event as CalendarEvent);
-    setTooltipPosition({
-      top: rect.top + window.scrollY,
-      left: rect.left + window.scrollX,
-      width: rect.width,
-      height: rect.height,
-    });
-  };
-
-  const handleEventMouseLeave = () => {
-    setHoveredEvent(null);
+  const handleCloseTooltip = () => {
+    setClickedEvent(null);
     setTooltipPosition(null);
   };
 
+  const handleEventClick = (info: any) => {
+    const eventDate = info.event.startStr;
+
+    if (clickedEvent && clickedEvent.title === info.event.title && clickedEvent.date === eventDate) {
+      handleCloseTooltip();
+    } else {
+      const rect = info.el.getBoundingClientRect();
+      const newClickedEvent = {
+        title: info.event.title,
+        date: eventDate, // Usa a data formatada do FullCalendar
+        color: info.event.backgroundColor,
+        extendedProps: info.event.extendedProps,
+      };
+
+      setClickedEvent(newClickedEvent);
+      setTooltipPosition({
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        clickedEvent &&
+        calendarRef.current
+      ) {
+        const tooltip = document.querySelector('[data-radix-popper-content-wrapper]');
+        if (tooltip && tooltip.contains(event.target as Node)) {
+          return;
+        }
+        
+        handleCloseTooltip();
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [clickedEvent, handleCloseTooltip]);
+
   const renderTooltipContent = (event: CalendarEvent) => {
     if (!event.extendedProps) return event.title;
+    
+    // A data já está no objeto `event` passado para a função
+    const displayDate = event.date ? new Date(event.date + 'T12:00:00').toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }) : 'Data Indisponível';
 
     switch (event.extendedProps.type) {
       case 'estagio_inicio':
@@ -226,7 +269,7 @@ export function Calendar() {
             <p className="font-bold">Início do Estágio</p>
             <p>Aluno: {event.extendedProps.studentName}</p>
             <p>Empresa: {event.extendedProps.company}</p>
-            <p>Data: {event.date}</p>
+            <p>Data: {displayDate}</p>
           </>
         );
       case 'estagio_termino':
@@ -235,7 +278,7 @@ export function Calendar() {
             <p className="font-bold">Término Previsto do Estágio</p>
             <p>Aluno: {event.extendedProps.studentName}</p>
             <p>Empresa: {event.extendedProps.company}</p>
-            <p>Data: {event.date}</p>
+            <p>Data: {displayDate}</p>
           </>
         );
       case 'estagio_conclusao':
@@ -244,7 +287,7 @@ export function Calendar() {
             <p className="font-bold">Conclusão do Estágio</p>
             <p>Aluno: {event.extendedProps.studentName}</p>
             <p>Empresa: {event.extendedProps.company}</p>
-            <p>Data: {event.date}</p>
+            <p>Data: {displayDate}</p>
             {event.extendedProps.motivo && <p>Motivo: {event.extendedProps.motivo}</p>}
           </>
         );
@@ -254,7 +297,7 @@ export function Calendar() {
           <>
             <p className="font-bold">{event.title}</p>
             <p>Aluno: {event.extendedProps.studentName}</p>
-            <p>Data de Entrega: {event.date}</p>
+            <p>Data de Entrega: {displayDate}</p>
             {event.extendedProps.reportType && <p>Tipo: {event.extendedProps.reportType}</p>}
           </>
         );
@@ -263,7 +306,7 @@ export function Calendar() {
           <>
             <p className="font-bold">Prorrogação de Estágio</p>
             <p>Aluno: {event.extendedProps.studentName}</p>
-            <p>Data: {event.date}</p>
+            <p>Data: {displayDate}</p>
           </>
         );
       case 'visita_articulador':
@@ -271,7 +314,7 @@ export function Calendar() {
           <>
             <p className="font-bold">Visita do Articulador</p>
             <p>Empresa: {event.extendedProps.company}</p>
-            <p>Data: {event.date}</p>
+            <p>Data: {displayDate}</p>
             <p>Período: {event.extendedProps.periodo}</p>
             <p>Tipo: {event.extendedProps.tipo}</p>
           </>
@@ -282,7 +325,7 @@ export function Calendar() {
             <p className="font-bold">Visita do Orientador</p>
             <p>Empresa: {event.extendedProps.company}</p>
             <p>Aluno: {event.extendedProps.studentName}</p>
-            <p>Data: {event.date}</p>
+            <p>Data: {displayDate}</p>
             <p>Período: {event.extendedProps.periodo}</p>
             <p>Tipo: {event.extendedProps.tipo}</p>
           </>
@@ -296,18 +339,17 @@ export function Calendar() {
     <>
       <Helmet title='Calendário' />
       <TooltipProvider>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative' }} ref={calendarRef}>
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             locale={ptLocale}
             events={events}
-            eventMouseEnter={handleEventMouseEnter}
-            eventMouseLeave={handleEventMouseLeave}
+            eventClick={handleEventClick}
             height="auto"
           />
 
-          {hoveredEvent && tooltipPosition && (
+          {clickedEvent && tooltipPosition && (
             <Tooltip open>
               <TooltipTrigger asChild>
                 <div
@@ -322,7 +364,7 @@ export function Calendar() {
                 />
               </TooltipTrigger>
               <TooltipContent side="top">
-                {renderTooltipContent(hoveredEvent)}
+                {renderTooltipContent(clickedEvent)}
               </TooltipContent>
             </Tooltip>
           )}
