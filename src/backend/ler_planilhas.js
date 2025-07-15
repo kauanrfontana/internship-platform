@@ -7,7 +7,7 @@ const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
 const SPREADSHEET_ID = "1IaAbCsXgjQY4n4C1Oujfxiy1Lg4VcCNe-vVt1kHJL8c";
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 
-const TAB_NAMES = ["Registro de Estágios", "Visitas do Articulador", "Visitas do Orientador", "Usuários", "FAQ"];
+const TAB_NAMES = ["Registro de Estágios", "Visitas do Articulador", "Visitas do Orientador", "Usuários", "FAQ", "Notícias"];
 
 const START_LINES_MAP = {
     "Registro de Estágios": 9,
@@ -15,6 +15,7 @@ const START_LINES_MAP = {
     "Visitas do Orientador": 2,
     "Usuários": 2,
     "FAQ": 2,
+    "Notícias": 2,
 };
 
 const COLUMNS_MAP_BY_TAB = {
@@ -23,6 +24,7 @@ const COLUMNS_MAP_BY_TAB = {
     "Visitas do Orientador": { "orientador": 0, "data_visita": 1, "periodo_visita": 2, "tipo_visita": 3, "efetivada": 4, "empresa": 5, "tipificacao_empresa": 6, "supervisor_na_empresa": 7, "cargo": 8, "nome_estagiario": 9, "obrigatorio": 10, "tempo_transcorrido_estagio": 11, "atividade_principais_atuais": 12, "progresso_atividades_anteriores": 13, "comentario_supervisor": 14, "comentario_estagiario": 15, "consideracoes_encaminhamentos": 16 },
     "Usuários": { "nome": 0, "tipo": 1, "login": 2, "senha": 3, },
     "FAQ": { "pergunta": 0, "resposta": 1, },
+    "Notícias": { "titulo": 0, "descricao": 1, },
 };
 
 class Planilha {
@@ -32,6 +34,7 @@ class Planilha {
     async coletarVisitasOrientador() { return this._lerArquivoJSON('visitas_do_orientador'); }
     async coletarUsuarios() { return this._lerArquivoJSON('usuarios'); }
     async coletarFaq() { return this._lerArquivoJSON('faq'); }
+    async coletarNoticias() { return this._lerArquivoJSON('noticias'); }
 
     async sincronizar() {
         console.log(`[${new Date().toLocaleString('pt-BR')}] Sincronizando dados da Planilha Google...`);
@@ -127,7 +130,7 @@ class Planilha {
                 }
             }
             
-            if ((tabName === "Registro de Estágios" && obj.nome_aluno) || (tabName === "Visitas do Articulador" && obj.empresa) || (tabName === "Visitas do Orientador" && obj.nome_estagiario) || (tabName === "Usuários" && obj.nome) || (tabName === "FAQ" && obj.pergunta)) {
+            if ((tabName === "Registro de Estágios" && obj.nome_aluno) || (tabName === "Visitas do Articulador" && obj.empresa) || (tabName === "Visitas do Orientador" && obj.nome_estagiario) || (tabName === "Usuários" && obj.nome) || (tabName === "FAQ" && obj.pergunta) || (tabName === "Notícias" && obj.titulo)) {
                 objectList.push(obj);
             }
         }

@@ -10,6 +10,7 @@ import { ProgressSection } from '@/components/progress-section'
 import { InternshipCard } from '@/components/internship-card'
 
 import registroDeEstagiosData from '@/backend/registro_de_estagios.json';
+import noticiasData from '@/backend/noticias.json'; // Importa o arquivo de notícias
 
 import { InternshipStatus, Internship, InternshipWithExtra } from '@/types/internship';
 import { InternshipDetailsModal } from '@/components/internship-details-modal'
@@ -89,18 +90,8 @@ function mapJsonToInternship(jsonItem: any, id: number): InternshipWithExtra {
   };
 }
 
-const mockNews = [
-  {
-    id: 1,
-    title: 'Novo edital de estágio publicado!',
-    content: 'Aproveite as novas oportunidades abertas para 2025.',
-  },
-  {
-    id: 2,
-    title: 'Documentação obrigatória atualizada',
-    content: 'Confira os novos requisitos para o relatório parcial.',
-  },
-]
+// Remove o mockNews e passa a usar o noticiasData importado
+const news = noticiasData;
 
 const statusColors: Record<Internship['status'], string> = {
   'Em andamento': 'bg-yellow-100 text-yellow-800',
@@ -159,11 +150,14 @@ export function Home() {
       setProgress(0);
       return;
     }
-    const start = new Date(currentInternship.startDate).getTime();
-    const end = new Date(currentInternship.endDate).getTime();
+    // A data está no formato DD/MM/AAAA, então precisamos reformatá-la para o cálculo
+    const startParts = currentInternship.startDate.split('/');
+    const endParts = currentInternship.endDate.split('/');
+    const startDate = new Date(`${startParts[2]}-${startParts[1]}-${startParts[0]}`).getTime();
+    const endDate = new Date(`${endParts[2]}-${endParts[1]}-${endParts[0]}`).getTime();
     const today = Date.now();
-    const percent = Math.min(100, Math.max(0, ((today - start) / (end - start)) * 100))
-    setProgress(percent)
+    const percent = Math.min(100, Math.max(0, ((today - startDate) / (endDate - startDate)) * 100));
+    setProgress(percent);
   }, [currentInternship]);
 
   if (!isAuthenticated) return null
@@ -205,10 +199,10 @@ export function Home() {
             <CardTitle>Notícias</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 max-h-48 overflow-y-auto">
-            {mockNews.map(news => (
-              <div key={news.id}>
-                <h3 className="font-medium">{news.title}</h3>
-                <p className="text-sm text-muted-foreground">{news.content}</p>
+            {news.map((item, index) => ( // Altera de mockNews para news
+              <div key={index}>
+                <h3 className="font-medium">{item.titulo}</h3> {/* Usa .titulo */}
+                <p className="text-sm text-muted-foreground">{item.descricao}</p> {/* Usa .descricao */}
               </div>
             ))}
           </CardContent>
