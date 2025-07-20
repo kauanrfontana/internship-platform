@@ -1,9 +1,7 @@
 import { Outlet } from "react-router-dom"
 import { GraduationCap } from 'lucide-react'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-import noticiasData from '@/backend/noticias.json'; 
+import { FrequentlyAskedQuestions } from "../app/frequently-asked-questions";
 
 export function AuthLayout() {
     return (
@@ -15,16 +13,7 @@ export function AuthLayout() {
                 </div>
                 
                 <div className="flex-1 overflow-y-auto pr-4 space-y-4 my-8 max-h-80 ">
-                    {noticiasData.map((noticia, index) => (
-                        <Card key={index} className="bg-white dark:bg-gray-800 shadow-md">
-                            <CardHeader>
-                                <CardTitle className="text-sm text-gray-900 dark:text-gray-100">{noticia.titulo}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">{noticia.descricao}</p>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    <FrequentlyAskedQuestions/>
                 </div>
 
                 <footer className="text-sm">

@@ -85,27 +85,6 @@ export function SignIn() {
               >
                 Entrar
               </Button>
-              {/* <Button
-                disabled={!isFormFilled || isSubmitting}
-                onClick={handleLoginAsStudent}
-                variant="default"
-              >
-                Entrar como Aluno
-              </Button>
-              <Button
-                disabled={!isFormFilled || isSubmitting}
-                onClick={handleLoginAsAdvisor}
-                variant="default"
-              >
-                Entrar como Orientador
-              </Button>
-              <Button
-                disabled={!isFormFilled || isSubmitting}
-                onClick={handleLoginAsArticulator}
-                variant="default"
-              >
-                Entrar como Articulador
-              </Button> */}
             </div>
           </form>
         </div>

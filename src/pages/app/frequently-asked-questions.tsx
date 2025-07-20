@@ -24,7 +24,7 @@ export function FrequentlyAskedQuestions() {
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
-              <div key={index} className="border-b pb-4">
+              <div key={index} className="border-b border-gray-400 pb-4">
                 <button
                   onClick={() => toggleFAQ(index)}
                   className="w-full flex justify-between items-center text-left text-xl font-medium focus:outline-none transition-colors duration-200"
