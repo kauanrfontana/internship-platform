@@ -4,17 +4,5 @@
     "tipo": "Articulador",
     "login": "casagrande@ifsc.edu.br",
     "senha": "123456"
-  },
-  {
-    "nome": "alexandre herbst carvalho",
-    "tipo": "Aluno",
-    "login": "a@a.com",
-    "senha": "123"
-  },
-  {
-    "nome": "Mário de Noronha Neto",
-    "tipo": "Orientador",
-    "login": "b@b.com",
-    "senha": "123"
   }
 ]
